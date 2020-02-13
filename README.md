@@ -14,18 +14,18 @@ PARTLIST
 
 Main processing unit is ESP8266 in form of "D1 mini" with ProtoBoard shield. Both can be found at ebay for cheap
 
-[img]https://www.picclickimg.com/d/l400/pict/163566262128_/Mini-ESP8266-ESP-12-WeMos-D1-NodeMcu-WIFI-Development.jpg[/img]
+![img](https://www.picclickimg.com/d/l400/pict/163566262128_/Mini-ESP8266-ESP-12-WeMos-D1-NodeMcu-WIFI-Development.jpg)
 
 Screen is also from ebay, 2.2 inch tft ili9341 320x240, there are several variations of them, mine has 3.3v logic level (no logic level shifter chip). As i use 3.3v to power it, J1 should be shorted by solder.
-[img]https://hackster.imgix.net/uploads/image/file/60743/LCD22.jpg[/img]
+![img](https://hackster.imgix.net/uploads/image/file/60743/LCD22.jpg)
 
 Step down converter 12V to 5V.
-[img]https://ram-e-shop.com/wp-content/uploads/2018/09/dc_dc_301.jpg[/img]
+![img](https://ram-e-shop.com/wp-content/uploads/2018/09/dc_dc_301.jpg)
 
 4N35 optocoupler to get RPM from pickup coil.
 
 A3144 hall sensor to get speed. Placed inside original speedometer near spinning magnetic disk.
-[img]https://www.howacarworks.com/illustration/1655/inside-a-mechanical-speedometer.png[/img]
+![img](https://www.howacarworks.com/illustration/1655/inside-a-mechanical-speedometer.png)
 
 1M, 10k, 4.7k resistors
 
@@ -35,13 +35,13 @@ A3144 hall sensor to get speed. Placed inside original speedometer near spinning
 
 Pushbutton. Short press switches between color schemes, long press (over 3s)- resets trip. 
 It is possible to use capacitive sensor placed behind plastic trim, so no hole drilling etc.
-[img]https://pg-cdn-a2.datacaciques.com/wm/NDAy/4174414326/2681266511.jpg[/img]
+![img](https://pg-cdn-a2.datacaciques.com/wm/NDAy/4174414326/2681266511.jpg)
 
 
 
 Hand drawn schematic
 
-[img]https://i.postimg.cc/B6wL8GG2/IMG-20200212-193810.jpg[/img]
+![img](https://i.postimg.cc/B6wL8GG2/IMG-20200212-193810.jpg)
 
 
 Pins GND, 5V, 3.3V, RST, A0, D1-D7 are on D1 mini board
@@ -60,7 +60,7 @@ SDO not connected
 
 Different screens have different names for pins.
 
-[img]https://i.postimg.cc/52K8YGW5/IMG-20200213-104950-631.png[/img]
+![img](https://i.postimg.cc/52K8YGW5/IMG-20200213-104950-631.png)
 
 
 
