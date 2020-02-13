@@ -70,6 +70,7 @@ You will nedd to extract TFT_eSPI-master-20200213T100157Z-001.zip to Documents\A
 
 
 There are few things to mention. First you will need to change wheel circumference to reflect your wheel size in centimeters  in line 41
+
 int wheel=156;
 
 Next you will need to uncomment (remove //) two lines 83 and 84 in code
@@ -81,10 +82,17 @@ Change allodo to mileage you have on your scooter, upload code to D1 mini, then 
 
 
 To change km to miles, i think it should be enough to multiply your wheel size by 0.621371,  for example line 41
+
 int wheel=156;
+
 should be
+
 int wheel=97;
+
 and change line 328
+
  tft.drawString("km/h",236,290);
+ 
 to
+
  tft.drawString("m/h",236,290);
