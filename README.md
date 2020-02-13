@@ -6,7 +6,7 @@ started in http://modernvespa.com/forum/post2384534#2384534
 
 
 
-![img]https://i.postimg.cc/6tdJM6Yx/IMG-20200206-070351.jpg
+![img](https://i.postimg.cc/6tdJM6Yx/IMG-20200206-070351.jpg)
 
 It has ressetable trip function, shows rpm, exact speed and has two colour schemes: one like in picture and another high contrast black on white for sunny days. It hooks up to pickup coil via optocoupler for rpm and i have added hall sensor into original speedo for speed. Based on esp8266 chip and 2.2 inch TFT display.
 
