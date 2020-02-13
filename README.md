@@ -73,8 +73,10 @@ There are few things to mention. First you will need to change wheel circumferen
 int wheel=156;
 
 Next you will need to uncomment (remove //) two lines 83 and 84 in code
+
 //  dispodo=0.1;  
 //  allodo=5660.2;
+
 Change allodo to mileage you have on your scooter, upload code to D1 mini, then comment/delete those two lines and again upload code.
 
 
