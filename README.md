@@ -35,9 +35,13 @@ A3144 hall sensor to get speed. Placed inside original speedometer near spinning
 
 Pushbutton. wired to ground. Short press switches between color schemes, long press (over 3s)- resets trip. 
 It is possible to use capacitive sensor placed behind plastic trim, so no hole drilling etc. Small change in code will be required as capacitive button goes high when activated. Line 114 from
+
 if (digitalRead(button) == LOW)
+
 to
+
 if (digitalRead(button) == HIGH)
+
 
 ![img](https://pg-cdn-a2.datacaciques.com/wm/NDAy/4174414326/2681266511.jpg)
 
