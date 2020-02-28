@@ -3,6 +3,8 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 
+#define TFT_RST  PIN_D4
+
 TFT_eSPI tft = TFT_eSPI();
 
 unsigned int backroundcolor = TFT_BLACK;
