@@ -57,16 +57,27 @@ Hand drawn schematic
 Pins GND, 5V, 3.3V, RST, A0, D1-D7 are on D1 mini board
 
 Screen connection:
+
 Screen -> D1 mini
+
 Vcc to 3.3V
+
 GND to GND
+
 CS to GND
-Reset to RST
+
+Reset to D4 (in schematic RST, but we need it on D4 for proper operation)
+
 RS to D3
+
 SCK to D5
+
 SDI to D7
+
 LED to Vcc
+
 SDO not connected
+
 
 Different screens have different names for pins.
 
