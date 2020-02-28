@@ -61,7 +61,7 @@ bool wheelflag=false;
 
 void setup()   {   
   WiFi.forceSleepBegin();
-  delay(100);
+  delay(1500);
 
 
   tft.init();
