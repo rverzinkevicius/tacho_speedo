@@ -205,8 +205,8 @@ if (digitalRead(button) == LOW)
   previous = 1;
   duration = elapsed_wheel - elapsed_prev;
   elapsed_prev  = millis();
-  duration=duration*2;    //we have two impulses per revolution if adding hall inside original speedometer
-  odo += wheel/200;        // as above
+  duration=duration*3;    //we have 3 impulses per revolution if adding hall inside original speedometer
+  odo += wheel/300.o;        // as above
   }
 
  if (digitalRead(wheelpin) == 1 && previous == 1)
