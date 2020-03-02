@@ -304,6 +304,7 @@ if (digitalRead(button) == LOW)
    }
    else
     {
+    if (spped1>99) {speed1 = speed1-100;}  //not allowing speed to climb over 99, as due to font issue it will mess up display
     tft.setTextColor(TFT_RED, backroundcolor);
     tft.drawNumber(speed1,180,320);
     }
