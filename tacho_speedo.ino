@@ -83,8 +83,8 @@ drawStatic();
   pinMode(wheelpin,INPUT);
  
   EEPROM.begin(10);
-  EEPROM.get(3,dispodo);  
-  odo = dispodo * 1000;
+  EEPROM.get(3,odo);  
+  dispodo = odo/1000;
 //  dispodo=0.1;
   EEPROM.get(7,allodo); 
 //  allodo=5660.2;
@@ -99,7 +99,7 @@ void loop()
  if (sensorValue < 100)             //check if ignition is off, save dispodo and allodo
   {
   EEPROM.begin(10);
-  EEPROM.put(3,dispodo);  
+  EEPROM.put(3,odo);  
   EEPROM.put(7,allodo); 
   EEPROM.commit();
 
@@ -205,12 +205,6 @@ if (digitalRead(button) == HIGH)
  if (digitalRead(wheelpin) == 1 && previous == 0)
   {
    previous = 1;
-   duration = elapsed_wheel - elapsed_prev;
-   elapsed_prev  = millis();
-   duration=duration;    
-   odo += wheel/6;          // i have 6 signal changes per rotation
-   allodo += wheel/6000;    // add traveled distance in kilometers
-   speedupdated=true;
   }
 
  if (digitalRead(wheelpin) == 1 && previous == 1)
@@ -224,14 +218,14 @@ if (digitalRead(button) == HIGH)
    }
   }
 
- if (digitalRead(wheelpin) == 0 && previous == 1)
+ if (digitalRead(wheelpin) == 0 && previous == 1)   //hall sensor A3144 goes low when magnetic field is present
   {
    previous = 0; 
    duration = elapsed_wheel - elapsed_prev;
    elapsed_prev  = millis();
    duration=duration;    
-   odo += wheel/6;         // i have 6 signal changes per rotation
-   allodo += 0.00026;      // add traveled distance in kilometers
+   odo += wheel;
+   allodo += wheel/1000;      // add traveled distance in kilometers
    speedupdated=true;    
   }
 
@@ -252,7 +246,7 @@ if (rpmupdated){
  rpm = min(9999, rpm);    // show 9999 if rpm is higher than 9999
  rpmupdated=false;
  
- if ( (rpm_a-10) < rpm  &&  rpm < (rpm_a+10))
+ if ( ((rpm_a-30) < rpm)  &&  (rpm < (rpm_a+30)) )    //noise reduction
   {
   rpm_a = rpm;
   rpm3 = rpm3 + rpm;
@@ -265,14 +259,14 @@ if (rpmupdated){
 }
 
 if (speedupdated){
- speedo = (wheel/6)*3600/duration;  
+ speedo = wheel*3600/duration;  
  speed1 = int(speedo+0.5);  // rounding
  odo2 = odo/1000;
  dispodo = roundf(odo2*10)/10;  // round to tens
  speed1 = min(99,speed1);       // show 99 if speed higher than 99. Due to font issue cannot show higher speed
  speedupdated=false;
 
- if ( (speed_a-1) < speed1  &&  speed1 < (speed_a+1))
+ if ( ((speed_a-3) < speed1)  &&  (speed1 < (speed_a+3)) )   //noise reduction
   {
   speed_a = speed1;
   speed3 = speed3 + speed1;
