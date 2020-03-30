@@ -125,6 +125,7 @@ if (digitalRead(button) == HIGH)
    {
    longPressActive = true;
    odo=0;
+   dispodod=0;
    tft.fillRect(150, 32, 90, 30, backroundcolor);
    }
   } 
@@ -266,7 +267,7 @@ if (speedupdated){
  speed1 = min(99,speed1);       // show 99 if speed higher than 99. Due to font issue cannot show higher speed
  speedupdated=false;
 
- if ( ((speed_a-3) < speed1)  &&  (speed1 < (speed_a+3)) )   //noise reduction
+ if ( ((speed_a-10) < speed1)  &&  (speed1 < (speed_a+10)) )   //noise reduction
   {
   speed_a = speed1;
   speed3 = speed3 + speed1;
