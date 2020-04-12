@@ -100,6 +100,9 @@ drawStatic();
   odo2 = odo/1000;
   dispodo = roundf(odo2*10)/10;
   dispodoprev = dispodo;
+ //  odo=0.1;  
+ //  allodo=5660.2;
+ 
 
 }
 
