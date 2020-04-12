@@ -3,8 +3,6 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 
-#define TFT_RST  PIN_D4
-
 TFT_eSPI tft = TFT_eSPI();
 
 unsigned int backroundcolor = TFT_BLACK;
@@ -20,8 +18,13 @@ boolean statebutton = false;
 boolean buttonActive = false;
 boolean longPressActive = false;
 
+int eepromsize = 21;
+int odoaddr = 13;
+int allodoaddr = 17;
+
 int rpmpin = D2;
 int rpm = 1;
+int rpmprev = 9999;
 int rpm_a = 1;
 int rpm1 = 1;
 int rpm2 = 1;
@@ -41,32 +44,37 @@ bool rpmflag=true;
 bool rpmupdated=false;
 
 
-int wheelpin = D1;
-int wheel=1.56; //wheel circumference in meters
+int speedpin = D1;
+int speedprev=99;
+volatile byte speedcount=0;
+int speedcountTmp=0;
+float ratas=1.56; 
+float distance=0;
 int speed1=0;
-int speed3=1;
-int speed_a=1;
-int counter = 0;
-int present = 0;
-int previous = 0;
-float speedo=1;
+float speedo=0;
 float odo=0;
 float odo2=0;
+float odo3=0;
+float odo4=0;
 float dispodo = 0;
-float allodo = 0;
-unsigned long duration = 1;
-unsigned long elapsed_wheel = 1;
-unsigned long elapsed_prev = 1;
+float dispodoprev = 0;
+float allodo;
 unsigned long last_show_speed=0;
-unsigned long cur_speed = 0; 
-unsigned long del3 = 0;
-unsigned long del4 = 0;
-bool wheelflag=true;
+unsigned long last_update_speed=0;
+unsigned long duration_speedTmp=1;
+volatile unsigned long duration_speed=1;
+volatile unsigned long last_speed=0;
 bool speedupdated=false;
 
 
 
-void setup()   {   
+bool flag50 = false;
+unsigned long time50start = 0;
+float time50 = 0;
+int speedprev50 = 0;
+
+
+void setup()   {  
  
   WiFi.forceSleepBegin();
   delay(300);
@@ -80,15 +88,18 @@ drawStatic();
 
   pinMode(button, INPUT_PULLUP);
   pinMode(rpmpin,INPUT);
-  pinMode(wheelpin,INPUT);
- 
-  EEPROM.begin(10);
-  EEPROM.get(3,odo);  
-  dispodo = odo/1000;
-//  dispodo=0.1;
-  EEPROM.get(7,allodo); 
-//  allodo=5660.2;
+  pinMode(speedpin,INPUT);
 
+  attachInterrupt(digitalPinToInterrupt(speedpin), speed_counter, FALLING);
+ 
+  EEPROM.begin(eepromsize);
+  EEPROM.get(odoaddr,odo);  
+  EEPROM.get(allodoaddr,allodo); 
+  EEPROM.end(); 
+
+  odo2 = odo/1000;
+  dispodo = roundf(odo2*10)/10;
+  dispodoprev = dispodo;
 
 }
 
@@ -96,11 +107,11 @@ void loop()
  {
 
  int sensorValue = analogRead(A0);
- if (sensorValue < 100)             //check if ignition is off, save dispodo and allodo
+ if (sensorValue < 100) 
   {
-  EEPROM.begin(10);
-  EEPROM.put(3,odo);  
-  EEPROM.put(7,allodo); 
+  EEPROM.begin(eepromsize);
+  EEPROM.put(odoaddr,odo);  
+  EEPROM.put(allodoaddr,allodo); 
   EEPROM.commit();
 
   tft.fillScreen(backroundcolor);
@@ -125,7 +136,8 @@ if (digitalRead(button) == HIGH)
    {
    longPressActive = true;
    odo=0;
-   dispodod=0;
+   dispodo=0;
+   dispodoprev = 0;
    tft.fillRect(150, 32, 90, 30, backroundcolor);
    }
   } 
@@ -140,7 +152,11 @@ if (digitalRead(button) == HIGH)
      else
       {
       statebutton = !statebutton;
-   
+/*
+      stateb +=1;
+      if (stateb>3){stateb=0;}
+  */    
+  
    if (statebutton)
        {
        backroundcolor = TFT_WHITE;
@@ -182,7 +198,7 @@ if (digitalRead(button) == HIGH)
   {
   cur=millis();
   del=cur - elapsed_prev_rpm;
-   if (del < 5)                  //debounce 
+   if (del < 5) 
     {
     previous_rpm=1;
     }
@@ -197,57 +213,20 @@ if (digitalRead(button) == HIGH)
   previous_rpm = 0;
   elapsedt_rpm = millis(); 
   del2=elapsedt_rpm - elapsed_prev_rpm;
-  if (del2>1000)             //if no updates for 1 second, set rpm to 0
+  if (del2>2000)
    {
    rpmflag=true;
    }
   }
  
- if (digitalRead(wheelpin) == 1 && previous == 0)
-  {
-   previous = 1;
-  }
-
- if (digitalRead(wheelpin) == 1 && previous == 1)
-  {
-  previous = 1;    
-  elapsed_wheel = millis();   
-  del3=elapsed_wheel - elapsed_prev;
-  if (del3>1000)            //if no updates for 1 second, set speed to 0    
-   {
-   wheelflag=true;
-   }
-  }
-
- if (digitalRead(wheelpin) == 0 && previous == 1)   //hall sensor A3144 goes low when magnetic field is present
-  {
-   previous = 0; 
-   duration = elapsed_wheel - elapsed_prev;
-   elapsed_prev  = millis();
-   duration=duration;    
-   odo += wheel;
-   allodo += wheel/1000;      // add traveled distance in kilometers
-   speedupdated=true;    
-  }
-
- if (digitalRead(wheelpin) == 0 && previous == 0)
-  {
-  previous = 0;
-  elapsed_wheel = millis();   
-  del3=elapsed_wheel - elapsed_prev;
-  if (del3>1000)            //if no updates for 1 second, set speed to 0 
-   {
-   wheelflag=true;
-   }
-  }
+ 
 
 if (rpmupdated){
  rpmai = 60000/duration_rpm;
  rpm = round (rpmai);
- rpm = min(9999, rpm);    // show 9999 if rpm is higher than 9999
  rpmupdated=false;
  
- if ( ((rpm_a-30) < rpm)  &&  (rpm < (rpm_a+30)) )    //noise reduction
+ if ( ((rpm_a-50) < rpm) && (rpm < (rpm_a+50)))
   {
   rpm_a = rpm;
   rpm3 = rpm3 + rpm;
@@ -259,33 +238,15 @@ if (rpmupdated){
    }
 }
 
-if (speedupdated){
- speedo = wheel*3600/duration;  
- speed1 = int(speedo+0.5);  // rounding
- odo2 = odo/1000;
- dispodo = roundf(odo2*10)/10;  // round to tens
- speed1 = min(99,speed1);       // show 99 if speed higher than 99. Due to font issue cannot show higher speed
- speedupdated=false;
 
- if ( ((speed_a-10) < speed1)  &&  (speed1 < (speed_a+10)) )   //noise reduction
-  {
-  speed_a = speed1;
-  speed3 = speed3 + speed1;
-  counter = counter + 1;
-  }
-  else
-   {
-   speed_a=speed1;
-   }
-
-}
 
 
  if ((millis()-last_show_rpm) >800)  //refresh rate
   {
- if (counter_rpm>0){       //calculate only if updated
+ if (counter_rpm>0){   
   rpm2=rpm3/counter_rpm;
   rpm2=((rpm2+5)/10)*10;  //round to tens
+  rpm2 = min(9999, rpm2); 
   counter_rpm=0;
   rpm3=0;
  }
@@ -296,48 +257,111 @@ if (speedupdated){
    tft.fillRect(0, 80, 181, 99, backroundcolor);
    }
 
-           
+if (rpmprev!=rpm2){           
   tft.setFreeFont(&Roboto_Mono_Medium_96);
   tft.setTextColor(rpmcolor, backroundcolor);
   tft.drawNumber(rpm2,236,172); 
+ 
+rpmprev=rpm2;
+}
   last_show_rpm= millis();
-
-    drawOdo();
+  drawOdo();
  }
 
+if ((millis()-last_show_speed) >100)
+{
 
-  if ((millis()-last_show_speed) >300)  //refresh rate
-  {
-if (counter>0){       //calculate only if updated
-  speed1 =speed3/counter;
-  counter =0;
-  speed3 = 0;
+if ((millis()-last_update_speed) >2000)
+{
+speed1=0;
 }
-  if (wheelflag)
-   {
-   speed1=0;
-   wheelflag=false;
-   }
 
+if (speedupdated)
+{
+  noInterrupts();
+  speedupdated=false;
+  speedcountTmp=speedcount;
+  speedcount = 0;
+  duration_speedTmp=duration_speed;
+  interrupts();
+
+speedo = ratas*3600.0/duration_speedTmp;  
+speed1 = int(speedo+0.5);   
+speed1 = min(99,speed1);
+
+distance =speedcountTmp*ratas;
+odo += distance;
+odo2=odo/1000;
+dispodo = (roundf(odo2*10))/10;
+allodo += distance/1000;
+
+if ((dispodo-dispodoprev)>1)
+{
+  dispodoprev=dispodo;
+  EEPROM.begin(eepromsize);
+  EEPROM.put(odoaddr,odo);  
+  EEPROM.put(allodoaddr,allodo); 
+  EEPROM.commit();
+}
+
+last_update_speed= millis();
+
+}
+
+if (speed1!=speedprev){ 
   tft.setFreeFont(&Open_Sans_Condensed_Bold_137);
-  if (speed1<10)              // clear display if speed less than 10
+  if (speed1<10)
    { 
-      tft.fillRect(0, 180, 180, 140, backroundcolor);
+   tft.fillRect(0, 180, 180, 140, backroundcolor);
    }
-  if(speed1<55)
-   { 
+ 
    tft.setTextColor(speedcolor, backroundcolor); 
    tft.drawNumber(speed1,180,320);
-   }
-   else                        //if speed is above 55 km/h, display it in RED
-    {
-    tft.setTextColor(TFT_RED, backroundcolor);
-    tft.drawNumber(speed1,180,320);
-    }
-    
-  last_show_speed= millis();
-  }
+ speedprev=speed1;   
 }
+    
+last_show_speed= millis();
+}
+
+
+if (speed1 == 0)
+{
+flag50 = false;
+speedprev50 = 0;
+}
+
+if ((speedupdated) && (speedprev50 == 0) && (!flag50))
+{
+time50start = millis();
+if (!flag50)
+{
+  tft.fillRect(70, 32, 80, 30, backroundcolor);
+  time50 = 0;
+}
+flag50 = true;
+speedprev50 = speed1;
+}
+
+if ((speed1>50) && (flag50))
+{
+time50 = (millis()-time50start)/1000.0;
+time50 = roundf(time50*100)/100;
+flag50 = false;
+}
+
+ 
+}
+
+ICACHE_RAM_ATTR void speed_counter()
+{
+speedcount++;
+duration_speed = millis()-last_speed;
+last_speed = millis();
+speedupdated=true;
+}
+
+ 
+
 
 
 void drawStatic()
@@ -352,10 +376,14 @@ void drawStatic()
  tft.drawString("km/h",236,290);
  }
 
+
 void drawOdo()
  {
  tft.setFreeFont(&Roboto_Mono_Medium_24);
  tft.setTextColor(odocolor, backroundcolor);
  tft.drawFloat(allodo,1,230,32);    
  tft.drawFloat(dispodo,1,230,62); 
+
+  tft.setTextColor(TFT_RED, backroundcolor);
+  tft.drawFloat(time50,2,230,179);             //display 0-50 km/h time
  }
