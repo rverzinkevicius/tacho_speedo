@@ -8,7 +8,7 @@ started in http://modernvespa.com/forum/post2384534#2384534
 
 ![img](https://i.postimg.cc/6tdJM6Yx/IMG-20200206-070351.jpg)
 
-It has ressetable trip function, shows rpm, exact speed and has two colour schemes: one like in picture and another high contrast black on white for sunny days. It hooks up to pickup coil via optocoupler for rpm and i have added hall sensor into original speedo for speed. Based on esp8266 chip and 2.2 inch TFT display.
+It has ressetable trip function, shows rpm, exact speed, 0-50 acceleration time and has two colour schemes: one like in picture and another high contrast black on white for sunny days. It hooks up to pickup coil via optocoupler for rpm and i have added hall sensor into original speedo for speed. Based on esp8266 chip and 2.2 inch TFT display.
 
 PARTLIST
 
@@ -90,30 +90,22 @@ main code is in tacho_speedo.ino
 You will nedd to extract TFT_eSPI-master-20200213T100157Z-001.zip to Documents\Arduino\libraries on your PC
 
 
-There are few things to mention. First you will need to change wheel circumference to reflect your wheel size in centimeters  in line 41
+There are few things to mention. First you will need to change wheel circumference to reflect your wheel size in meters  in line 51
 
-int wheel=156;
+float ratas=1.56; 
 
-Next you will need to uncomment (remove //) two lines 83 and 84 in code
+Next you will need to uncomment (remove //) two lines 103 and 104 in code
 
-//  dispodo=0.1;  
+//  odo=0.1;  
 //  allodo=5660.2;
 
 Change allodo to mileage you have on your scooter, upload code to D1 mini, then comment/delete those two lines and again upload code.
 
 
-To change km to miles, i think it should be enough to multiply your wheel size by 0.621371,  for example line 41
-
-int wheel=156;
-
-should be
-
-int wheel=97;
-
-and change line 328
+To change km to miles, i think it should be enough to multiply your wheel size by 0.621371 and change line 379
 
  tft.drawString("km/h",236,290);
  
 to
 
- tft.drawString("m/h",236,290);
+ tft.drawString("mph",236,290);
