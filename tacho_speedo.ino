@@ -65,7 +65,7 @@ unsigned long duration_speedTmp=1;
 volatile unsigned long duration_speed=1;
 volatile unsigned long last_speed=0;
 bool speedupdated=false;
-
+bool speedupdated2=false;
 
 
 bool flag50 = false;
@@ -271,6 +271,8 @@ rpmprev=rpm2;
   drawOdo();
  }
 
+speedupdated2=speedupdated;
+ 
 if ((millis()-last_show_speed) >100)
 {
 
@@ -333,7 +335,7 @@ flag50 = false;
 speedprev50 = 0;
 }
 
-if ((speedupdated) && (speedprev50 == 0) && (!flag50))
+if ((speedupdated2) && (speedprev50 == 0) && (!flag50))
 {
 time50start = millis();
 if (!flag50)
@@ -342,6 +344,7 @@ if (!flag50)
   time50 = 0;
 }
 flag50 = true;
+speedupdated2=false;
 speedprev50 = speed1;
 }
 
