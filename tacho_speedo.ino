@@ -352,7 +352,7 @@ time50 = roundf(time50*100)/100;
 flag50 = false;
 }
 
- 
+yield(); 
 }
 
 ICACHE_RAM_ATTR void speed_counter()
