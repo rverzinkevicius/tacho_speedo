@@ -335,14 +335,11 @@ flag50 = false;
 speedprev50 = 0;
 }
 
-if ((speedupdated2) && (speedprev50 == 0) && (!flag50))
+if ((speed1>0) && (speedprev50 == 0) && (!flag50))
 {
 time50start = millis();
-if (!flag50)
-{
-  tft.fillRect(70, 32, 80, 30, backroundcolor);
-  time50 = 0;
-}
+tft.fillRect(70, 32, 80, 30, backroundcolor);
+time50 = 0;
 flag50 = true;
 speedupdated2=false;
 speedprev50 = speed1;
