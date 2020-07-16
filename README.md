@@ -17,7 +17,6 @@ Main processing unit is ESP8266 in form of "D1 mini" with ProtoBoard shield. Bot
 ![img](https://www.picclickimg.com/d/l400/pict/163566262128_/Mini-ESP8266-ESP-12-WeMos-D1-NodeMcu-WIFI-Development.jpg)
 
 Screen is also from ebay, 2.2 inch tft ili9341 320x240, there are several variations of them, mine has 3.3v logic level (no logic level shifter chip). As i use 3.3v to power it, J1 should be shorted by solder.
-![img](https://hackster.imgix.net/uploads/image/file/60743/LCD22.jpg)
 
 Step down converter 12V to 5V.
 ![img](https://ram-e-shop.com/wp-content/uploads/2018/09/dc_dc_301.jpg)
