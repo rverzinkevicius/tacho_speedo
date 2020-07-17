@@ -2,15 +2,27 @@
 #include <EEPROM.h>
 #include <TFT_eSPI.h>
 #include <SPI.h>
+#include "GyverFilters.h"
 
 
+extern "C" {
+  #include <user_interface.h>
+}
+rst_info *rinfo;
+int resetreason = 99;
 
 TFT_eSPI tft = TFT_eSPI();
+
+GMedian3<int> testFilter3;
+GMedian<5, int> testFilter;
+GFilterRA testFilterRA;
 
 unsigned int backroundcolor = TFT_WHITE;
 unsigned int speedcolor = TFT_BLACK;
 unsigned int rpmcolor = TFT_BLUE;
 unsigned int odocolor = TFT_BLACK;
+
+//int headlight = D8;
 
 
 int button = D6;
@@ -41,17 +53,20 @@ int counter_rpm = 0;
 int present_rpm = 0;
 int previous_rpm = 0;
 float rpmai = 1;
-unsigned long duration_rpm = 1;
 unsigned long elapsedt_rpm = 1;
 unsigned long elapsed_prev_rpm = 1;
 unsigned long last_show_rpm=0;
+unsigned long last_update_rpm=0;
 unsigned long cur = 0;
 unsigned long del= 0;
 unsigned long del2= 0;
 bool rpmflag=true;
 bool rpmupdated=false;
+unsigned long duration_rpmTmp=0;
+volatile unsigned long duration_rpm=0;
+volatile unsigned long last_rpm=0;
 
-const int numReadings = 5;
+const int numReadings = 4;
 int readings[numReadings];
 int readIndex = 0;
 int total = 0;
@@ -62,7 +77,7 @@ int speedpin = D1;
 int speedprev=99;
 volatile byte speedcount=0;
 int speedcountTmp=0;
-float ratas=0.312;    //wheel circumstance divided by hall sensor pulses per rotation
+float ratas=0.312;          //wheel circumstance divided by hall sensor pulses per rotation
 float distance=0;
 int speed1=0;
 float speedo=0;
@@ -92,7 +107,20 @@ int speedprev50 = 0;
 void setup()   {   
 
  Serial.begin(115200);
+ 
+rinfo = ESP.getResetInfoPtr();
+resetreason= ((*rinfo).reason);
 
+  Serial.print("Reset reason: ");
+  Serial.println(resetreason);
+
+if(resetreason != 0)
+  { 
+       backroundcolor = TFT_BLACK;
+       speedcolor = TFT_GREEN;
+       rpmcolor = TFT_YELLOW;
+       odocolor = TFT_WHITE;
+  }
 
   WiFi.mode( WIFI_OFF );
   WiFi.forceSleepBegin();
@@ -106,10 +134,13 @@ void setup()   {
 drawStatic();
 
 
-  pinMode(button, INPUT);
+testFilterRA.setCoef(0.5);
+
+  pinMode(button,INPUT);
   pinMode(rpmpin,INPUT);
   pinMode(speedpin,INPUT);
 
+  attachInterrupt(digitalPinToInterrupt(rpmpin), rpm_counter, RISING); 
   attachInterrupt(digitalPinToInterrupt(speedpin), speed_counter, FALLING);
  
   Serial.println("Reading memory.");
@@ -210,7 +241,7 @@ if (digitalRead(button) == HIGH)
 
       drawStatic();
  
- tft.setFreeFont(&Roboto_Mono_Medium_24);  // digits max widthXheight  15x17
+ tft.setFreeFont(&Roboto_Mono_Medium_24);
  tft.setTextColor(odocolor, backroundcolor);
  tft.drawFloat(allodo,1,230,28);    
  tft.drawFloat(dispodo,1,230,52);
@@ -221,65 +252,24 @@ if (digitalRead(button) == HIGH)
  }
 
 
+if ((millis()-last_update_rpm) >700)
+{
+rpmflag=true;
+}
 
- if (digitalRead(rpmpin) == 1 && previous_rpm == 0)
-  {
-  previous_rpm = 1;
-  duration_rpm = elapsedt_rpm - elapsed_prev_rpm;
-  rpmupdated=true;
-  elapsed_prev_rpm  = micros();   
-  }
-
- if (digitalRead(rpmpin) == 1 && previous_rpm == 1)
-  {
-  previous_rpm = 1;       
-  }
-
- if (digitalRead(rpmpin) == 0 && previous_rpm == 1)
-  {
-  cur=micros();
-  del=cur - elapsed_prev_rpm;
-   if (del < 5900) 
-    {
-    previous_rpm=1;
-    }
-    else 
-     {
-     previous_rpm = 0;     
-     }
-  }
-
- if (digitalRead(rpmpin) == 0 && previous_rpm == 0)
-  {
-  previous_rpm = 0;
-  elapsedt_rpm = micros(); 
-  del2=elapsedt_rpm - elapsed_prev_rpm;
-  if (del2>2000000)
-   {
-   rpmflag=true;
-   }
-  }
- 
  
 
 if (rpmupdated){
- rpmai = 60000000/duration_rpm;
+  
+  noInterrupts();
+  rpmupdated=false;
+  duration_rpmTmp=duration_rpm;
+  interrupts();
+  
+ rpmai = 60000000/duration_rpmTmp;
  rpm = round (rpmai);
- rpm=((rpm+5)/10)*10;  //round to tens
- rpmupdated=false;
 
- printData();
-
- if ( ((rpm_a-100) > rpm) && (rpm > (rpm_a+100))&&(rpm>1000))
-  {
-     rpm = rpm_a;
-  }
-
- if ( ((rpm_a-50) < rpm) && (rpm < (rpm_a+50)))
-  {
-  rpm_a = rpm;
-
-  total = total - readings[readIndex];
+total = total - readings[readIndex];
   readings[readIndex] = rpm;
   total = total + readings[readIndex];
   readIndex = readIndex + 1;
@@ -288,17 +278,24 @@ if (rpmupdated){
        readIndex = 0;
        }
   }
-  else
-     {
-     rpm_a=rpm;
-     }
+
+rpm = total / numReadings;
+
+//rpm=testFilter3.filtered(rpm);
+//rpm=testFilter.filtered(rpm);
+rpm=testFilterRA.filtered(float(rpm));
+
+ printData();
+
+last_update_rpm=millis();
+
 }
+
 
  if ((millis()-last_show_rpm) >300)  //refresh rate
   {
 
-rpm2 = total / numReadings;
-rpm2=((rpm2+5)/10)*10;
+rpm2=((rpm+5)/10)*10;
 
   if (rpmflag)
    {
@@ -307,21 +304,22 @@ rpm2=((rpm2+5)/10)*10;
    tft.fillRect(0, 62, 177, 96, backroundcolor);
    }
 
-if (rpmprev!=rpm2){          
-
-  if (rpm2<1000)
-   { 
-   tft.fillRect(0, 62, 177, 96, backroundcolor);
-   }
+if (rpmprev!=rpm2)
+  {          
+   if (rpm2<1000)
+    { 
+    tft.fillRect(0, 62, 177, 96, backroundcolor);
+    }
    
-  tft.setFreeFont(&Roboto_Mono_Medium_96);  // digits max widthXheight  59x71
-  tft.setTextColor(rpmcolor, backroundcolor);
-  tft.drawNumber(rpm2,236,162); 
+   tft.setFreeFont(&Roboto_Mono_Medium_96);  // digits max widthXheight  59x71
+   tft.setTextColor(rpmcolor, backroundcolor);
+   tft.drawNumber(rpm2,236,162); 
  
-rpmprev=rpm2;
-}
-  last_show_rpm= millis();
+ rpmprev=rpm2;
  }
+  
+last_show_rpm= millis();
+}
 
 
 
@@ -349,6 +347,8 @@ odo2=odo/1000;
 dispodo = (roundf(odo2*10))/10;
 allodo += distance/1000;
 
+odo4 += speedo * (millis()-last_update_speed)/3600;
+
 last_update_speed= millis();
 
 }
@@ -357,20 +357,27 @@ if ((millis()-last_show_speed) >300)
 {
 
 if (speed1!=speedprev){ 
-  tft.setFreeFont(&&Open_Sans_Condensed_Bold_137);
   if (speed1<10)
    { 
    tft.fillRect(0, 180, 180, 140, backroundcolor);
    }
  
-   tft.setTextColor(speedcolor, backroundcolor); 
-   tft.drawNumber(speed1,180,320);
+ tft.setFreeFont(&Open_Sans_Condensed_Bold_137);
+ tft.setTextColor(speedcolor, backroundcolor); 
+ tft.drawNumber(speed1,180,320);
  speedprev=speed1;   
 }
     
 last_show_speed= millis();
 }
 
+/*
+ if ((millis()-last_serial_print) >5000) 
+ {
+printData();
+last_serial_print=millis();
+ }
+*/
 
 if ((millis()-last_show_odo) >1000)
 {
@@ -395,7 +402,7 @@ speedprev50 = 0;
 
 if ((speed1>0) && (!flag50) && (speedprev50 == 0))
 {
-time50start = millis();
+time50start = millis();    
 time50 = 0;
 flag50 = true;
 speedprev50 = speed1;
@@ -417,15 +424,14 @@ time50 = roundf(time50*100)/100;
 if ((speed1>=50) && (flag50))
 {
 time50 = (millis()-time50start)/1000.0;
-time50 = roundf(time50*100)/100 + 0.3;  //adding 0.3 seconds to compensate first signal not accounted for wheel rotation
+time50 = roundf(time50*100)/100 + 0.3;    //adding 0.3 seconds to compensate first signal not accounted for wheel rotation
 flag50 = false;
 }
 
-
-yield(); 
+yield();   //to feed the dog
 }
 
-ICACHE_RAM_ATTR void speed_counter()
+ICACHE_RAM_ATTR void speed_counter()  //ISR for speed
 {
 speedcount++;
 duration_speed = micros()-last_speed;
@@ -433,6 +439,16 @@ last_speed = micros();
 speedupdated=true;
 }
 
+
+ICACHE_RAM_ATTR void rpm_counter()   //ISR for RPM
+{
+ if ((micros()-last_rpm)>5900)
+ {
+  duration_rpm = micros()-last_rpm;
+  last_rpm = micros();
+  rpmupdated=true;
+ }
+}
 
 
 void drawStatic()
@@ -442,16 +458,25 @@ void drawStatic()
  tft.setTextColor(odocolor, backroundcolor); 
  tft.drawString("ODO",2,28);
  tft.drawString("TRIP",2,52);
+ tft.setFreeFont(&Roboto_Mono_Medium_24);
+ tft.setTextColor(speedcolor, backroundcolor); 
+ tft.drawString("km/h",236,290);
  }
 
 void printData()
 {
-
-  Serial.print(micros());
-  Serial.print(",");
+ /* Serial.print("Speed: ");
+  Serial.print(speed1);
+  Serial.print(" ;RPM: ");
+  Serial.print(rpm2);
+  Serial.print(" ;ODOm: ");
+  Serial.println(odo);
+ */ 
+//  Serial.print(micros());
+//  Serial.print(",");
   Serial.print(rpmai);
   Serial.print(",");
-  Serial.print(rpm2);
+  Serial.print(rpm);
   Serial.print(",");
   Serial.println(speed1);
 
@@ -459,27 +484,36 @@ void printData()
 
 void drawOdo()
  {
- tft.setFreeFont(&Roboto_Mono_Medium_24);  
+ tft.setFreeFont(&Roboto_Mono_Medium_24);
  tft.setTextColor(odocolor, backroundcolor);
 
 if(allodo!=allodo_last)
 {
- tft.setFreeFont(&Roboto_Mono_Medium_24);  
- tft.setTextColor(odocolor, backroundcolor);
  tft.drawFloat(allodo,1,230,28);    
-allodo_last=allodo;
+ allodo_last=allodo;
 }
 
 if(dispodo!=dispodo_last)
 {
- tft.setFreeFont(&Roboto_Mono_Medium_24);
- tft.setTextColor(odocolor, backroundcolor);
  tft.drawFloat(dispodo,1,230,52); 
-dispodo_last=dispodo;
+ dispodo_last=dispodo;
 }
 
+if(resetreason != 0)
+  { 
+  tft.setTextColor(TFT_RED, backroundcolor);
+  tft.drawString("rst",100,28);
+  tft.drawNumber(resetreason,115,28);
+  }
 
- void draw50()
+if((odo4-odo)>30)            
+  {
+  tft.setTextColor(TFT_RED, backroundcolor);
+  tft.drawNumber((odo4-odo),200,230);
+  }
+ } 
+
+  void draw50()
  {
  if(time50!=time50_prev)
  {
