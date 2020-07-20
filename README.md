@@ -8,6 +8,12 @@ started in http://modernvespa.com/forum/post2384534#2384534
 
 
 
+<iframe id="ytplayer" type="text/html" width="640" height="360"
+  src="https://www.youtube.com/embed/f4hAAehVGUw?autoplay=0"
+  frameborder="0"></iframe>
+
+
+
 ![img](https://i.postimg.cc/6tdJM6Yx/IMG-20200206-070351.jpg)
 
 It has ressetable trip function, shows rpm, exact speed, 0-50 acceleration time and has two colour schemes: one like in picture and another high contrast black on white for sunny days. It hooks up to pickup coil via optocoupler for rpm and i have added hall sensor into original speedo for speed. Based on esp8266 chip and 2.2 inch TFT display.
