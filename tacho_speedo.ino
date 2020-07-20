@@ -442,8 +442,8 @@ speedupdated=true;
 
 ICACHE_RAM_ATTR void rpm_counter()   //ISR for RPM
 {
- if ((micros()-last_rpm)>5900)
- {
+ if ((micros()-last_rpm)>5900)   //debounce signal. Take MAX RPM of engine and calculate time in micro seconds for full revolution: 
+ {                               //   60 000 000/(max_RPM+couple_hundred_for_error)  ->  60 000 000 / (10 000 + 200) = 5882 -> rounded it to 5900
   duration_rpm = micros()-last_rpm;
   last_rpm = micros();
   rpmupdated=true;
