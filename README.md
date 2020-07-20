@@ -8,11 +8,6 @@ started in http://modernvespa.com/forum/post2384534#2384534
 
 
 
-<iframe id="ytplayer" type="text/html" width="640" height="360"
-  src="https://www.youtube.com/embed/f4hAAehVGUw?autoplay=0"
-  frameborder="0"></iframe>
-
-
 
 ![img](https://i.postimg.cc/6tdJM6Yx/IMG-20200206-070351.jpg)
 
