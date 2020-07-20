@@ -87,7 +87,7 @@ main code is in tacho_speedo.ino
 You will nedd to extract TFT_eSPI-master-20200213T100157Z-001.zip to Documents\Arduino\libraries on your PC
 
 
-There are few things to mention. First you will need to change wheel circumference to reflect your wheel size in meters  in line 51
+There are few things to mention. First you will need to change wheel circumference to reflect your wheel size in meters 
 
 float ratas=1.56; 
 
@@ -99,10 +99,5 @@ Next you will need to uncomment (remove //) two lines 103 and 104 in code
 Change allodo to mileage you have on your scooter, upload code to D1 mini, then comment/delete those two lines and again upload code.
 
 
-To change km to miles, i think it should be enough to multiply your wheel size by 0.621371 and change line 379
+To change km to miles, i think it should be enough to multiply your wheel size by 0.621371 
 
- tft.drawString("km/h",236,290);
- 
-to
-
- tft.drawString("mph",236,290);
