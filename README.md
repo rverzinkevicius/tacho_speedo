@@ -21,7 +21,8 @@ Screen is also from ebay, 2.2 inch tft ili9341 320x240, there are several variat
 Step down converter 12V to 5V.
 ![img](https://ram-e-shop.com/wp-content/uploads/2018/09/dc_dc_301.jpg)
 
-4N35 optocoupler to get RPM from pickup coil.
+4N35 optocoupler to get RPM from pickup coil. This circuit can be ommited as long as pickup coil generates signal which is up to 3.3V (actually 5v should not hurt chip).
+It is also possible to use spark plug wire as signal for RPM, just wrap (DO NOIT CONNECT DIRECTLY!!!) few turns of wire around spark plug wire and use schematic from https://github.com/rverzinkevicius/ignition_advance
 
 A3144 hall sensor to get speed. Placed inside original speedometer near spinning magnetic disk.
 ![img](https://www.howacarworks.com/illustration/1655/inside-a-mechanical-speedometer.png)
