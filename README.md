@@ -27,7 +27,7 @@ Step down converter 12V to 5V.
 4N35 optocoupler to get RPM from pickup coil. This circuit can be ommited as long as pickup coil generates signal which is up to 3.3V (actually 5v should not hurt chip).
 It is also possible to use spark plug wire as signal for RPM, just wrap (DO NOIT CONNECT DIRECTLY!!!) few turns of wire around spark plug wire and use schematic from https://github.com/rverzinkevicius/ignition_advance
 
-A3144 hall sensor to get speed. Placed inside original speedometer near spinning magnetic disk.
+A3144 hall sensor to get speed. Placed inside original speedometer near spinning magnetic disk. Later on have moved to using 5 magnets on wwheel for better accuracy.
 ![img](https://www.howacarworks.com/illustration/1655/inside-a-mechanical-speedometer.png)
 
 1M, 10k, 4.7k resistors
@@ -37,13 +37,7 @@ A3144 hall sensor to get speed. Placed inside original speedometer near spinning
 25V 10000uF electrolytic capacitor or several in parallel, i have used 6 capacitors 2200uF each. This will provide enough power for D1 mini to save odometer and trip to memory after switching ignition off.
 
 Pushbutton. wired to ground. Short press switches between color schemes, long press (over 3s)- resets trip. 
-It is possible to use capacitive sensor placed behind plastic trim, so no hole drilling etc. Small change in code will be required as capacitive button goes high when activated. Line 114 from
-
-if (digitalRead(button) == LOW)
-
-to
-
-if (digitalRead(button) == HIGH)
+It is possible to use capacitive sensor placed behind plastic trim, so no hole drilling etc.
 
 
 ![img](https://pg-cdn-a2.datacaciques.com/wm/NDAy/4174414326/2681266511.jpg)
