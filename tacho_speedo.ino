@@ -5,25 +5,14 @@
 #include "GyverFilters.h"
 
 
-extern "C" {
-  #include <user_interface.h>
-}
-rst_info *rinfo;
-int resetreason = 99;
-
 TFT_eSPI tft = TFT_eSPI();
 
-GMedian3<int> testFilter3;
-GMedian<5, int> testFilter;
 GFilterRA testFilterRA;
 
 unsigned int backroundcolor = TFT_WHITE;
 unsigned int speedcolor = TFT_BLACK;
 unsigned int rpmcolor = TFT_BLUE;
 unsigned int odocolor = TFT_BLACK;
-
-//int headlight = D8;
-
 
 int button = D6;
 int stateb = 0;
@@ -84,7 +73,6 @@ float speedo=0;
 float odo=0;
 float odo2=0;
 float odo3=0;
-float odo4=0;
 float dispodo = 0;
 float dispodo_last;
 float dispodoprev = 0;
@@ -107,20 +95,6 @@ int speedprev50 = 0;
 void setup()   {   
 
  Serial.begin(115200);
- 
-rinfo = ESP.getResetInfoPtr();
-resetreason= ((*rinfo).reason);
-
-  Serial.print("Reset reason: ");
-  Serial.println(resetreason);
-
-if(resetreason != 0)
-  { 
-       backroundcolor = TFT_BLACK;
-       speedcolor = TFT_GREEN;
-       rpmcolor = TFT_YELLOW;
-       odocolor = TFT_WHITE;
-  }
 
   WiFi.mode( WIFI_OFF );
   WiFi.forceSleepBegin();
@@ -281,8 +255,6 @@ total = total - readings[readIndex];
 
 rpm = total / numReadings;
 
-//rpm=testFilter3.filtered(rpm);
-//rpm=testFilter.filtered(rpm);
 rpm=testFilterRA.filtered(float(rpm));
 
  printData();
@@ -347,8 +319,6 @@ odo2=odo/1000;
 dispodo = (roundf(odo2*10))/10;
 allodo += distance/1000;
 
-odo4 += speedo * (millis()-last_update_speed)/3600;
-
 last_update_speed= millis();
 
 }
@@ -371,13 +341,6 @@ if (speed1!=speedprev){
 last_show_speed= millis();
 }
 
-/*
- if ((millis()-last_serial_print) >5000) 
- {
-printData();
-last_serial_print=millis();
- }
-*/
 
 if ((millis()-last_show_odo) >1000)
 {
@@ -499,19 +462,7 @@ if(dispodo!=dispodo_last)
  dispodo_last=dispodo;
 }
 
-if(resetreason != 0)
-  { 
-  tft.setTextColor(TFT_RED, backroundcolor);
-  tft.drawString("rst",100,28);
-  tft.drawNumber(resetreason,115,28);
-  }
-
-if((odo4-odo)>30)            
-  {
-  tft.setTextColor(TFT_RED, backroundcolor);
-  tft.drawNumber((odo4-odo),200,230);
-  }
- } 
+} 
 
   void draw50()
  {
