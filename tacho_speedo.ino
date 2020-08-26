@@ -257,7 +257,7 @@ rpm = total / numReadings;
 
 rpm=testFilterRA.filtered(float(rpm));
 
- printData();
+// printData();
 
 last_update_rpm=millis();
 
@@ -347,6 +347,13 @@ if ((millis()-last_show_odo) >1000)
     drawOdo();
     last_show_odo=millis();
 }
+
+if ((millis()-last_serial_print) >6)
+{
+    printData();
+    last_serial_print=millis();
+}
+
 
 
 if ((millis()-last_show_50) >100)
